@@ -198,35 +198,7 @@ export default function App() {
           />
         </div>
         
-        {/* Loading Indicator Area */}
-        <AnimatePresence>
-          {isTranslating && (
-            <motion.div
-              initial={{ opacity: 0, height: 0 }}
-              animate={{ opacity: 1, height: 'auto' }}
-              exit={{ opacity: 0, height: 0 }}
-              className="flex justify-center"
-            >
-              <div className="flex gap-3 py-2">
-                <motion.div
-                  animate={{ scale: [0, 1, 0] }}
-                  transition={{ repeat: Infinity, duration: 1.4, delay: 0 }}
-                  className="h-3 w-3 rounded-full bg-slate-400 dark:bg-slate-500"
-                />
-                <motion.div
-                  animate={{ scale: [0, 1, 0] }}
-                  transition={{ repeat: Infinity, duration: 1.4, delay: 0.2 }}
-                  className="h-3 w-3 rounded-full bg-slate-400 dark:bg-slate-500"
-                />
-                <motion.div
-                  animate={{ scale: [0, 1, 0] }}
-                  transition={{ repeat: Infinity, duration: 1.4, delay: 0.4 }}
-                  className="h-3 w-3 rounded-full bg-slate-400 dark:bg-slate-500"
-                />
-              </div>
-            </motion.div>
-          )}
-        </AnimatePresence>
+
 
       </motion.div>
 
