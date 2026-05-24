@@ -12,10 +12,13 @@ import {
   Copy,
   Check,
   Loader2,
+  Clock,
+  Trash2
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'motion/react';
 import { callGoogleTranslateAPI } from './api';
 import LanguageModal from './components/LanguageModal';
+import { HistoryItem, LANGUAGES } from './types';
 
 export default function App() {
   const [sourceText, setSourceText] = useState('');
@@ -29,6 +32,18 @@ export default function App() {
   const [copiedSource, setCopiedSource] = useState(false);
   const [copiedTarget, setCopiedTarget] = useState(false);
 
+  const [history, setHistory] = useState<HistoryItem[]>(() => {
+    try {
+      const saved = localStorage.getItem('translation_history');
+      if (saved) {
+        return JSON.parse(saved);
+      }
+    } catch {
+      return [];
+    }
+    return [];
+  });
+
   // Apply dark mode class to HTML element based on state
   useEffect(() => {
     if (isDarkMode) {
@@ -37,6 +52,10 @@ export default function App() {
       document.documentElement.classList.remove('dark');
     }
   }, [isDarkMode]);
+
+  useEffect(() => {
+    localStorage.setItem('translation_history', JSON.stringify(history));
+  }, [history]);
 
   const handleTranslate = async () => {
     if (!sourceText.trim() || isTranslating) return;
@@ -55,6 +74,18 @@ export default function App() {
     
     setTranslatedText(result);
     setIsTranslating(false);
+
+    if (result && sourceText) {
+      const newItem: HistoryItem = {
+        id: Date.now().toString(),
+        sourceText,
+        translatedText: result,
+        sourceLang,
+        targetLang,
+        timestamp: Date.now()
+      };
+      setHistory((prev) => [newItem, ...prev].slice(0, 15));
+    }
   };
 
   const handleSwap = () => {
@@ -198,7 +229,61 @@ export default function App() {
           />
         </div>
         
-
+        {/* History Section */}
+        <AnimatePresence>
+          {history.length > 0 && (
+            <motion.div 
+              initial={{ opacity: 0, height: 0 }}
+              animate={{ opacity: 1, height: 'auto' }}
+              exit={{ opacity: 0, height: 0 }}
+              className="mt-2 flex flex-col gap-3"
+            >
+              <div className="flex items-center justify-between border-b border-slate-200/50 dark:border-white/10 px-1 pb-2">
+                <div className="flex items-center gap-2 text-slate-500 dark:text-slate-400">
+                  <Clock className="h-4 w-4" />
+                  <span className="text-xs font-semibold uppercase tracking-wider">History</span>
+                </div>
+                <button 
+                  onClick={() => setHistory([])}
+                  className="text-xs font-medium text-slate-400 hover:text-red-500 transition-colors"
+                  title="Hapus History"
+                >
+                  <Trash2 className="h-4 w-4" />
+                </button>
+              </div>
+              
+              <div className="flex max-h-[180px] flex-col gap-2 overflow-y-auto pr-1">
+                {history.map((item) => (
+                  <div 
+                    key={item.id} 
+                    className="group flex flex-col rounded-[16px] bg-white/40 p-3 shadow-sm backdrop-blur-md border border-slate-200/50 transition-all hover:bg-white/60 dark:bg-white/5 dark:border-white/5 dark:hover:bg-white/10 cursor-pointer"
+                    onClick={() => {
+                      setSourceText(item.sourceText);
+                      setTranslatedText(item.translatedText);
+                      setSourceLang(item.sourceLang);
+                      setTargetLang(item.targetLang);
+                    }}
+                  >
+                    <div className="flex items-center justify-between mb-1.5">
+                      <div className="rounded-full bg-slate-200/50 px-2 py-0.5 text-[10px] font-medium text-slate-600 dark:bg-white/10 dark:text-slate-300">
+                        {LANGUAGES[item.sourceLang]} → {LANGUAGES[item.targetLang]}
+                      </div>
+                      <span className="text-[10px] text-slate-400 dark:text-slate-500">
+                        {new Date(item.timestamp).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+                      </span>
+                    </div>
+                    <div className="text-sm font-medium text-slate-800 line-clamp-1 dark:text-slate-200">
+                      {item.sourceText}
+                    </div>
+                    <div className="mt-0.5 text-xs text-slate-500 line-clamp-1 dark:text-slate-400">
+                      {item.translatedText}
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </motion.div>
+          )}
+        </AnimatePresence>
 
       </motion.div>
 

@@ -1,3 +1,12 @@
+export interface HistoryItem {
+  id: string;
+  sourceText: string;
+  translatedText: string;
+  sourceLang: string;
+  targetLang: string;
+  timestamp: number;
+}
+
 export const LANGUAGES: Record<string, string> = {
   en: 'Inggris',
   id: 'Indonesia',
